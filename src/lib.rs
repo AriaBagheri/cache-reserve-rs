@@ -1,5 +1,5 @@
 mod reserve;
-mod postgres;
+#[cfg(feature = "postgres")]
+pub mod postgres;
 
 pub use reserve::*;
-pub use postgres::*;
