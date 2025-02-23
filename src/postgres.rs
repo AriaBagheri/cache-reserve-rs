@@ -16,7 +16,7 @@ where
             if let PgChangeAction::Insert = notification.action {
                 return
             }
-            let record = match serde_json::from_value(notification.payload) {
+            let record: T = match serde_json::from_value(notification.payload) {
                 Ok(v) => {
                     v
                 },
