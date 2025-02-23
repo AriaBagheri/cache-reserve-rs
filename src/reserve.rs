@@ -7,6 +7,7 @@ pub struct CacheReserve<PK, T>
 where
     PK: Eq + Hash,
 {
+    size: usize,
     storage: LazyLock<RwLock<HashMap<PK, T>>>,
 }
 
