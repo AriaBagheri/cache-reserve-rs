@@ -23,4 +23,10 @@ where
             storage: LazyLock::new(|| RwLock::new(HashMap::new()))
         }
     }
+
+    pub async fn set(&self, key: PK, value: T) {
+        self.storage.write().await.insert(key, value);
+    }
+
+            if let Some(value) = pk.fetch::<T>().await? {
 }
