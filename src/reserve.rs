@@ -13,3 +13,14 @@ where
 pub trait Fetchable {
     async fn fetch<T>(&self) -> Result<Option<T>, Box<dyn std::error::Error>>;
 }
+
+impl<PK, T> CacheReserve<PK, T>
+where
+    PK: Eq + Hash + Fetchable + Copy,
+{
+    pub fn const_new() -> Self {
+        Self {
+            storage: LazyLock::new(|| RwLock::new(HashMap::new()))
+        }
+    }
+}
