@@ -42,7 +42,7 @@ where
         *self.monitoring_handle.lock().await = Some(tokio::spawn(self.monitoring_process()));
     }
 
-    pub async fn monitoring_process(&self){
+    pub async fn monitoring_process(&'static self){
         let mut shutdown = self.shutdown.subscribe();
         let mut interval = tokio::time::interval(Duration::from_secs(1));
         loop {
