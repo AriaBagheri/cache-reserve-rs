@@ -42,6 +42,35 @@ where
         *self.monitoring_handle.lock().await = Some(tokio::spawn(self.monitoring_pool()));
     }
 
+    pub async fn monitoring_process(&self){
+        let mut shutdown = self.shutdown.subscribe();
+        let mut interval = tokio::time::interval(Duration::from_secs(1));
+        loop {
+            tokio::select! {
+                _ = shutdown.recv() => {
+                    break;
+                },
+                _ = interval.tick() => {
+                    let size_of_storage = self.storage.read().await.len();
+                    if size_of_storage > self.size {
+                        self.random_removal(size_of_storage - self.size).await;
+                    }
+                }
+            }
+        }
+    }
+
+    pub async fn random_removal(&self, mut count: usize) {
+        let mut x = self.storage.write().await;
+        x.retain(|k, _| {
+            if count > 0 {
+                count = count - 1;
+                false
+            }  else {
+                true
+            }
+        });
+    }
 
     pub async fn set(&self, key: PK, value: T) {
         self.storage.write().await.insert(key, value);
