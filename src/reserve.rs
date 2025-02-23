@@ -9,3 +9,7 @@ where
 {
     storage: LazyLock<RwLock<HashMap<PK, T>>>
 }
+
+pub trait Fetchable {
+    async fn fetch<T>(&self) -> Result<Option<T>, Box<dyn std::error::Error>>;
+}
