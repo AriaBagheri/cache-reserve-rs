@@ -8,7 +8,7 @@ use colored::Colorize;
 impl<PK, T> CacheReserve<PK, T>
 where
     PK: From<T> + Hash + Eq + Copy + Send + Sync,
-    T: Clone + Send + Sync,
+    T: Clone + Send + Sync + serde::de::DeserializeOwned,
 {
     pub fn listener(&self, notification: PgChangeNotification, mut shutdown: Receiver<()>) -> JoinHandle<()> {
         tokio::spawn(async move {
