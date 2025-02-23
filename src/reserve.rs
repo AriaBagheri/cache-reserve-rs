@@ -49,4 +49,8 @@ where
         }
         Ok(self.get_from_storage(&pk).await)
     }
+
+    pub async fn ignore(&self, pk: PK) -> Option<T> {
+        self.storage.write().await.remove(&pk)
+    }
 }
