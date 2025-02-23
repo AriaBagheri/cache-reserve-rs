@@ -28,6 +28,13 @@ where
         self.storage.write().await.insert(key, value);
     }
 
+    pub async fn update(&self, key: PK, value: T) {
+        let mut storage = self.storage.write().await;
+        if let Some(x) = storage.get_mut(&key) {
+            *x = value;
+        }
+    }
+
     async fn get_from_storage(&self, pk: &PK) -> Option<RwLockReadGuard<T>> {
         let guard = self.storage.read().await;
 
