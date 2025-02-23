@@ -10,7 +10,7 @@ where
     PK: From<T> + Hash + Eq + Copy,
     T: Clone
 {
-    pub fn listener(&self, notification: PgChangeNotification, shutdown: Receiver<()>) -> JoinHandle<()> {
+    pub fn listener(&self, notification: PgChangeNotification, mut shutdown: Receiver<()>) -> JoinHandle<()> {
         tokio::spawn(async move {
             // Short circuit. If the record was just inserted, it clearly is not cached yet!
             if let PgChangeAction::Insert = notification.action {
@@ -35,14 +35,14 @@ where
             match notification.action {
                 PgChangeAction::Update => {
                     tokio::select! {
-                        _ = shutdown.recv();
-                        _ = self.update(PK::from(record.clone()), record).await;
+                        _ = shutdown.recv() => {}
+                        _ = self.update(PK::from(record.clone()), record).await => {}
                     }
                 }
                 PgChangeAction::Delete => {
                     tokio::select! {
-                        _ = shutdown.recv();
-                        _ = self.ignore(PK::from(record)).await;
+                        _ = shutdown.recv() => {}
+                        _ = self.ignore(PK::from(record)).await => {}
                     }
                 }
                 PgChangeAction::Insert => {
