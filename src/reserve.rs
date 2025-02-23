@@ -16,7 +16,7 @@ pub trait Fetchable {
 
 impl<PK, T> CacheReserve<PK, T>
 where
-    PK: Eq + Hash + Fetchable + Copy,
+    PK: Eq + Hash + Copy,
 {
     pub fn const_new() -> Self {
         Self {
@@ -48,7 +48,9 @@ where
         }
     }
 
-    pub async fn get_with(&self, pk: PK) -> Result<Option<RwLockReadGuard<T>>, Box<dyn std::error::Error>> {
+    pub async fn get_with(&self, pk: PK) -> Result<Option<RwLockReadGuard<T>>, Box<dyn std::error::Error>>
+        where PK: Fetchable
+    {
         if !self.storage.read().await.contains_key(&pk) {
             if let Some(value) = pk.fetch::<T>().await? {
                 self.set(pk, value).await;
