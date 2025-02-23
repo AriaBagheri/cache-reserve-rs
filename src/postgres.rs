@@ -46,6 +46,7 @@ where
                     }
                 }
                 PgChangeAction::Insert => {
+                    // unreachable due to initial short-circuiting of the insert variation
                     unreachable!();
                 }
             };
