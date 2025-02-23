@@ -38,6 +38,11 @@ where
         }
     }
 
+    pub async fn initiate(&'static self) {
+        *self.monitoring_handle.lock().await = Some(tokio::spawn(self.monitoring_pool()));
+    }
+
+
     pub async fn set(&self, key: PK, value: T) {
         self.storage.write().await.insert(key, value);
     }
