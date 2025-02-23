@@ -1,9 +1,9 @@
 use crate::CacheReserve;
 use persistent_postgres::{PgChangeAction, PgChangeNotification};
 use std::hash::Hash;
-use serde_json::Error;
 use tokio::sync::broadcast::Receiver;
 use tokio::task::JoinHandle;
+use colored::Colorize;
 
 impl<PK, T> CacheReserve<PK, T>
 where
