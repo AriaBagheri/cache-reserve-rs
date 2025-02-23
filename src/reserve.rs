@@ -28,5 +28,20 @@ where
         self.storage.write().await.insert(key, value);
     }
 
+    async fn get_from_storage(&self, pk: &PK) -> Option<RwLockReadGuard<T>> {
+        let guard = self.storage.read().await;
+
+        if guard.contains_key(pk) {
+            Some(RwLockReadGuard::map(
+                guard,
+                |v| v.get(&pk).unwrap()
+            ))
+        } else {
+            None
+        }
+    }
+
+    pub async fn get_with(&self, pk: PK) -> Result<Option<RwLockReadGuard<T>>, Box<dyn std::error::Error>> {
+        if !self.storage.read().await.contains_key(&pk) {
             if let Some(value) = pk.fetch::<T>().await? {
 }
