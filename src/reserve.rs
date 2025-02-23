@@ -11,7 +11,7 @@ where
 }
 
 pub trait Fetchable {
-    async fn fetch<T>(&self) -> Result<Option<T>, Box<dyn std::error::Error>>;
+    fn fetch<T>(&self) -> impl Future<Output = Result<Option<T>, Box<dyn std::error::Error>>> + Send;
 }
 
 impl<PK, T> CacheReserve<PK, T>
