@@ -36,13 +36,13 @@ where
                 PgChangeAction::Update => {
                     tokio::select! {
                         _ = shutdown.recv() => {}
-                        _ = self.update(PK::from(record.clone()), record).await => {}
+                        _ = self.update(PK::from(record.clone()), record) => {}
                     }
                 }
                 PgChangeAction::Delete => {
                     tokio::select! {
                         _ = shutdown.recv() => {}
-                        _ = self.ignore(PK::from(record)).await => {}
+                        _ = self.ignore(PK::from(record)) => {}
                     }
                 }
                 PgChangeAction::Insert => {
