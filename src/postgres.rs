@@ -10,7 +10,7 @@ where
     PK: From<T> + Hash + Eq + Copy + Send + Sync,
     T: Clone + Send + Sync + serde::de::DeserializeOwned,
 {
-    pub fn listener(&self, notification: PgChangeNotification, mut shutdown: Receiver<()>) -> JoinHandle<()> {
+    pub fn listener(&'static self, notification: PgChangeNotification, mut shutdown: Receiver<()>) -> JoinHandle<()> {
         tokio::spawn(async move {
             // Short circuit. If the record was just inserted, it clearly is not cached yet!
             if let PgChangeAction::Insert = notification.action {
