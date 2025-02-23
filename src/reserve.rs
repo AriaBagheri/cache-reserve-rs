@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::sync::LazyLock;
 use std::time::Duration;
-use tokio::io::AsyncWriteExt;
 use tokio::sync::broadcast::Sender;
 use tokio::sync::{Mutex, RwLock, RwLockReadGuard};
 use tokio::task::JoinHandle;
+use colored::Colorize;
 
 pub struct CacheReserve<PK, T>
 where
@@ -26,7 +26,8 @@ pub trait Fetchable {
 
 impl<PK, T> CacheReserve<PK, T>
 where
-    PK: Eq + Hash + Copy,
+    PK: Eq + Hash + Copy + Send + Sync,
+    T: Send + Sync
 {
     pub fn const_new(size: usize) -> Self {
         Self {
@@ -39,14 +40,15 @@ where
     }
 
     pub async fn initiate(&'static self) {
-        *self.monitoring_handle.lock().await = Some(tokio::spawn(self.monitoring_process()));
+        *self.monitoring_handle.lock().await = Some(self.monitoring_process());
     }
 
-    pub async fn monitoring_process(&'static self){
-        let mut shutdown = self.shutdown.subscribe();
-        let mut interval = tokio::time::interval(Duration::from_secs(1));
-        loop {
-            tokio::select! {
+    pub fn monitoring_process(&'static self) -> JoinHandle<()> {
+        tokio::spawn(async move {
+            let mut shutdown = self.shutdown.subscribe();
+            let mut interval = tokio::time::interval(Duration::from_secs(1));
+            loop {
+                tokio::select! {
                 _ = shutdown.recv() => {
                     break;
                 },
@@ -57,12 +59,13 @@ where
                     }
                 }
             }
-        }
+            }
+        })
     }
 
     pub async fn random_removal(&self, mut count: usize) {
         let mut x = self.storage.write().await;
-        x.retain(|k, _| {
+        x.retain(|_, _| {
             if count > 0 {
                 count = count - 1;
                 false
