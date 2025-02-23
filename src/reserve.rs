@@ -9,6 +9,9 @@ where
 {
     size: usize,
     storage: LazyLock<RwLock<HashMap<PK, T>>>,
+
+    monitoring_handle: Mutex<Option<JoinHandle<()>>>,
+    shutdown: LazyLock<Sender<()>>
 }
 
 pub trait Fetchable {
