@@ -111,4 +111,35 @@ where
     pub async fn ignore(&self, pk: PK) -> Option<T> {
         self.storage.write().await.remove(&pk)
     }
+
+    pub async fn shutdown(&self) {
+        print!("\n");
+
+        let _ = self.shutdown.send(());
+        println!(
+            "{}",
+            "CACHE_RESERVE - SHUTDOWN - Shutdown signal was propagated to internal threads!".cyan()
+        );
+
+        if let Some(monitor_thread) = self.monitoring_handle.lock().await.as_mut() {
+            let _ = tokio::time::timeout(Duration::from_secs(5), &mut *monitor_thread)
+                .await
+                .map(|_| {
+                    println!(
+                        "{}",
+                        "CACHE_RESERVE - SHUTDOWN - Monitoring thread terminated gracefully!".cyan()
+                    );
+                })
+                .map_err(|_| {
+                    println!(
+                        "{} {}",
+                        "CACHE_RESERVE - SHUTDOWN - Monitoring thread terminated".cyan(),
+                        "forcefully".bold().red()
+                    );
+                    monitor_thread.abort();
+                });
+        }
+        self.storage.write().await.clear();
+        println!("{}", "CACHE_RESERVE - SHUTDOWN - Goodbye!".cyan())
+    }
 }
