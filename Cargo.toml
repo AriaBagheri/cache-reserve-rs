@@ -1,0 +1,11 @@
+[package]
+name = "cache-reserve"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+postgres = ["sqlx"]
+
+[dependencies]
+sqlx = { version = "0.8.3", features = ["postgres"], optional = true }
+tokio = { version = "1.43.0", features = ["sync"] }
