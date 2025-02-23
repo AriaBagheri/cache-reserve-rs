@@ -1,7 +1,11 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::sync::LazyLock;
-use tokio::sync::{RwLock, RwLockReadGuard};
+use std::time::Duration;
+use tokio::io::AsyncWriteExt;
+use tokio::sync::broadcast::Sender;
+use tokio::sync::{Mutex, RwLock, RwLockReadGuard};
+use tokio::task::JoinHandle;
 
 pub struct CacheReserve<PK, T>
 where
@@ -24,9 +28,13 @@ impl<PK, T> CacheReserve<PK, T>
 where
     PK: Eq + Hash + Copy,
 {
-    pub fn const_new() -> Self {
+    pub fn const_new(size: usize) -> Self {
         Self {
+            size,
             storage: LazyLock::new(|| RwLock::new(HashMap::new())),
+
+            monitoring_handle: Mutex::new(None),
+            shutdown: LazyLock::new(|| Sender::new(1)),
         }
     }
 
