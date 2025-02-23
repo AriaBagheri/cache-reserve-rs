@@ -39,7 +39,7 @@ where
     }
 
     pub async fn initiate(&'static self) {
-        *self.monitoring_handle.lock().await = Some(tokio::spawn(self.monitoring_th()));
+        *self.monitoring_handle.lock().await = Some(tokio::spawn(self.monitoring_process()));
     }
 
     pub async fn monitoring_process(&self){
