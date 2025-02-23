@@ -7,11 +7,13 @@ pub struct CacheReserve<PK, T>
 where
     PK: Eq + Hash,
 {
-    storage: LazyLock<RwLock<HashMap<PK, T>>>
+    storage: LazyLock<RwLock<HashMap<PK, T>>>,
 }
 
 pub trait Fetchable {
-    fn fetch<T>(&self) -> impl Future<Output = Result<Option<T>, Box<dyn std::error::Error>>> + Send;
+    fn fetch<T>(
+        &self,
+    ) -> impl Future<Output = Result<Option<T>, Box<dyn std::error::Error>>> + Send;
 }
 
 impl<PK, T> CacheReserve<PK, T>
@@ -20,7 +22,7 @@ where
 {
     pub fn const_new() -> Self {
         Self {
-            storage: LazyLock::new(|| RwLock::new(HashMap::new()))
+            storage: LazyLock::new(|| RwLock::new(HashMap::new())),
         }
     }
 
@@ -39,17 +41,18 @@ where
         let guard = self.storage.read().await;
 
         if guard.contains_key(pk) {
-            Some(RwLockReadGuard::map(
-                guard,
-                |v| v.get(&pk).unwrap()
-            ))
+            Some(RwLockReadGuard::map(guard, |v| v.get(&pk).unwrap()))
         } else {
             None
         }
     }
 
-    pub async fn get_with(&self, pk: PK) -> Result<Option<RwLockReadGuard<T>>, Box<dyn std::error::Error>>
-        where PK: Fetchable
+    pub async fn get_with(
+        &self,
+        pk: PK,
+    ) -> Result<Option<RwLockReadGuard<T>>, Box<dyn std::error::Error>>
+    where
+        PK: Fetchable,
     {
         if !self.storage.read().await.contains_key(&pk) {
             if let Some(value) = pk.fetch::<T>().await? {
