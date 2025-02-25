@@ -18,8 +18,8 @@ where
     shutdown: LazyLock<Sender<()>>
 }
 
-pub trait Fetchable {
-    fn fetch<T>(
+pub trait Fetchable<T> {
+    fn fetch(
         &self,
     ) -> impl Future<Output = Result<Option<T>, Box<dyn std::error::Error>>> + Send;
 }
@@ -101,10 +101,10 @@ where
         pk: PK,
     ) -> Result<Option<RwLockReadGuard<T>>, Box<dyn std::error::Error>>
     where
-        PK: Fetchable,
+        PK: Fetchable<T>,
     {
         if !self.storage.read().await.contains_key(&pk) {
-            if let Some(value) = pk.fetch::<T>().await? {
+            if let Some(value) = pk.fetch().await? {
                 self.set(pk, value).await;
             }
         }
