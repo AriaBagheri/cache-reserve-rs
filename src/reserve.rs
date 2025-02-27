@@ -29,12 +29,12 @@ where
     PK: Eq + Hash + Copy + Send + Sync,
     T: Send + Sync
 {
-    pub fn const_new(size: usize) -> Self {
+    pub const fn const_new(size: usize) -> Self {
         Self {
             size,
             storage: LazyLock::new(|| RwLock::new(HashMap::new())),
 
-            monitoring_handle: Mutex::new(None),
+            monitoring_handle: Mutex::const_new(None),
             shutdown: LazyLock::new(|| Sender::new(1)),
         }
     }
