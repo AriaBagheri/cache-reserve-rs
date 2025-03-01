@@ -21,20 +21,20 @@ where
 pub trait Fetchable<T> {
     fn fetch(
         &self,
-    ) -> impl Future<Output = Result<Option<T>, Box<dyn std::error::Error>>> + Send;
+    ) -> impl Future<Output = Result<Option<T>, String>> + Send;
 }
 
 impl<PK, T> CacheReserve<PK, T>
 where
-    PK: Eq + Hash + Copy + Send + Sync,
+    PK: Eq + Hash + Clone + Send + Sync,
     T: Send + Sync
 {
-    pub fn const_new(size: usize) -> Self {
+    pub const fn const_new(size: usize) -> Self {
         Self {
             size,
-            storage: LazyLock::new(|| RwLock::new(HashMap::new())),
+            storage: LazyLock::new(|| RwLock::const_new(HashMap::new())),
 
-            monitoring_handle: Mutex::new(None),
+            monitoring_handle: Mutex::const_new(None),
             shutdown: LazyLock::new(|| Sender::new(1)),
         }
     }
@@ -99,13 +99,13 @@ where
     pub async fn get_with(
         &self,
         pk: PK,
-    ) -> Result<Option<RwLockReadGuard<T>>, Box<dyn std::error::Error>>
+    ) -> Result<Option<RwLockReadGuard<T>>, String>
     where
         PK: Fetchable<T>,
     {
         if !self.storage.read().await.contains_key(&pk) {
             if let Some(value) = pk.fetch().await? {
-                self.set(pk, value).await;
+                self.set(pk.clone(), value).await;
             }
         }
         Ok(self.get_from_storage(&pk).await)
