@@ -7,7 +7,7 @@ use colored::Colorize;
 
 impl<PK, T> CacheReserve<PK, T>
 where
-    PK: From<T> + Hash + Eq + Send + Sync,
+    PK: From<T> + Hash + Eq + Clone + Send + Sync,
     T: Clone + Send + Sync + serde::de::DeserializeOwned,
 {
     pub fn listener(&'static self, notification: PgChangeNotification, mut shutdown: Receiver<()>) -> JoinHandle<()> {
