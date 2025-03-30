@@ -1,6 +1,6 @@
 [package]
 name = "cache-reserve"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 
 [features]
@@ -10,7 +10,7 @@ postgres=["persistent-postgres", "sqlx", "serde_json"]
 colored = "3.0.0"
 tokio = { version = "1.43.0", features = ["sync", "rt-multi-thread", "macros", "time"] }
 
-persistent-postgres = { git = "ssh://git@github.com/AriaBagheri/persistent-postgres-rs", version = "0.1.1", optional = true }
+persistent-postgres = { git = "ssh://git@github.com/AriaBagheri/persistent-postgres-rs", version = ">=0.1.1", optional = true }
 serde_json = { version = "1.0.139", optional = true }
 sqlx = { version = "0.8.3", features = ["postgres"], optional = true }
 serde = "1.0.218"
