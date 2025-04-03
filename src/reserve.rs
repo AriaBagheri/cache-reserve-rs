@@ -11,6 +11,7 @@ pub struct CacheReserve<PK, T>
 where
     PK: Eq + Hash,
 {
+    disable_cache: bool,
     size: usize,
     storage: LazyLock<RwLock<HashMap<PK, T>>>,
 
@@ -29,17 +30,21 @@ where
     PK: Eq + Hash + Clone + Send + Sync,
     T: Send + Sync
 {
-    pub const fn const_new(size: usize) -> Self {
+    pub const fn const_new(size: usize, disable_cache: bool) -> Self {
         Self {
             size,
             storage: LazyLock::new(|| RwLock::const_new(HashMap::new())),
 
             monitoring_handle: Mutex::const_new(None),
             shutdown: LazyLock::new(|| Sender::new(1)),
+            disable_cache: disable_cache
         }
     }
 
     pub async fn initiate(&'static self) {
+        if (self.disable_cache) {
+            return
+        }
         *self.monitoring_handle.lock().await = Some(self.monitoring_process());
     }
 
@@ -103,7 +108,7 @@ where
     where
         PK: Fetchable<T>,
     {
-        if !self.storage.read().await.contains_key(&pk) {
+        if self.disable_cache || !self.storage.read().await.contains_key(&pk) {
             if let Some(value) = pk.fetch().await? {
                 self.set(pk.clone(), value).await;
             }
@@ -116,6 +121,9 @@ where
     }
 
     pub async fn shutdown(&self) {
+        if self.disable_cache {
+            return
+        }
         print!("\n");
 
         let _ = self.shutdown.send(());
